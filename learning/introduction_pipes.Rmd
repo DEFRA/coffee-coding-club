@@ -1,0 +1,182 @@
+---
+title: "Pipes Tutorial"
+author: "Sam Finlayson"
+date: "14 October 2019"
+output: html_document
+---
+
+#Introduction
+
+This is an introduction to *pipes* in R, which are a useful tool for various tasks. A more extensive (and professional) introduction to pipes is available in the R for Data Science book at https://r4ds.had.co.nz/pipes.html.  
+Pipes in R are sourced from the **magrittr** library, though if you are using a **tidyverse** package (such as **dplyr**), you don't explicitly need to import **magrittr**.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r Libraries, message=FALSE, warning=FALSE}
+
+library(magrittr) # you can explitly import the full library for pipes here, but you don't need to if you are using a tidyverse package (i.e. dplyr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(plotly)
+
+```
+
+Pipes in R started out life when people considered chaining functions, and how to improve their readability. There are many circumstances when you may wish to apply a sequence of functions to some data.
+
+## Nested Functions
+
+To have a look at some chained/nested functions, we load some built in data.
+
+```{r Load data, warning=FALSE}
+
+
+# load some sample data
+data("CO2")
+glimpse(CO2)
+summary(CO2)
+
+```
+
+Now we apply the sequence of functions we'd like to get our result.
+
+```{r Chained Function, warning=FALSE}
+summarise(group_by(filter(CO2, Type == "Quebec"), Treatment), mean = mean(uptake)) # looks like excel...
+
+```
+The above code with nested functions is difficult to read; a familiar problem with complex functions in excel (for example). Instead, we can achieve the same effect with pipes, creating a *pipeline*: we start with the data and then we apply a sequence of functions until we have achieved our desired output.
+
+```{r Pipeline 1, warning=FALSE}
+
+# as above nested function, but with a pipe
+CO2 %>%
+  filter(Type == "Quebec") %>%
+  group_by(Treatment) %>%
+  summarise(mean = mean(uptake))
+
+```
+
+The operator '%>%' can be thought of as passing an object from the left (the data) into a function on the right. You could write the above as the following (see the notes on style at the end).
+
+```{r Pipeline 2, eval=FALSE, warning=FALSE, include=TRUE}
+
+CO2 %>% filter(Type == "Quebec") %>% group_by(Treatment) %>% summarise(mean = mean(uptake))
+
+```
+
+
+The pipeline steps, using functions from *dplyr*, effectively read as:   
+1. take the CO2 dataframe,   
+2. filter it by Type,   
+3. group it by treatment and   
+5. calculate the mean of this grouping.  
+
+This is the mean of the two Treatment groups "nonchilled" and "chilled" for only the Type "Quebec".  
+Using a pipe made this clear and readable, though the end result is no different to the nested version (i.e. you don't have to use this tool, especially if you want to confuse others/yourself looking at the code in the future!).
+
+Note that in the pipe, the object is passed into the first argument of the function on the right. 
+```{r eval=FALSE, include=TRUE}
+CO2 %>% filter(Type == "Quebec")
+# is the same as...
+filter(CO2, Type == "Quebec")
+```
+
+You can refererence the data with a placeholder '.', which you can use to move the object from the first argument to another, if you come across such a situation...
+
+```{r eval=FALSE, include=TRUE}
+CO2 %>% filter(., Type == "Quebec") # again the same as the above, with the '.' equivalent to 'CO2'
+```
+
+
+## Assignment
+
+In the above example, the data is not stored anywhere, just printed to the console. If you want to store the result of your pipeline as a variable you have a few options.
+
+```{r Assignment}
+
+# Option 1 - Preferred Syntax
+CO2_result <- CO2 %>%
+  filter(Type == "Quebec") %>%
+  group_by(Treatment) %>%
+  summarise(mean = mean(uptake))
+
+# Option 2 - flip the arrow
+CO2 %>%
+  filter(Type == "Quebec") %>%
+  group_by(Treatment) %>%
+  summarise(mean = mean(uptake)) -> CO2_result2
+
+# Option 3 - Magrittr specific operator (must explicitly import library(magrittr)) - see note on Style at end
+CO2_result3 <- CO2 
+CO2_result3 %<>%
+  filter(Type == "Quebec") %>%
+  group_by(Treatment) %>%
+  summarise(mean = mean(uptake))
+```
+
+Option 1 tends to be the preferred syntax, although it seemed strange to me at first to go from left to right and assign back to the name at the beginning. Option 2 can be quite readable. Option 3 is compact, but can be confusing.
+
+
+## Other Operators
+
+At some point when writing pipes you'll find you end the pipeline before you want it to end. The Tee operator %T>% helps with this.
+
+
+```{r Operators}
+
+CO2 %T>%
+  {print(ggplot(., aes(x = factor(conc), y = uptake)) + geom_boxplot())} %>% # ggplot2 requires the + geom_ which requires the {} to ensure correct precedence of operation (try it without the brackets)
+  filter(Treatment == "chilled") %>%
+  mutate(unnecessary_sum = uptake + conc) %T>% # arbitrary processing step - add a column
+  {print(ggplot(., aes(x = factor(conc), y = uptake)) + geom_boxplot())} %>%
+  glimpse() # see the results
+
+```
+
+There are further operators, like %$% (for exposing variables, less useful in my experience but look it up and see below) and %<>% (already detailed).
+
+```{r}
+
+CO2 %$%
+  plot(uptake, conc) # plot has nowhere for the data argument to go, so use %$% to expose the variables to the function
+
+```
+
+
+## Plotly Example
+
+One useful example where you will likely use is when plotting with the *Plotly* package. Plotly makes excellent interactive charts for use in Rmarkdown HTML reports, and RShiny dashboards etc. 
+Plotly plots can often be easier to construct with wide data, where each column of data is added to the graph as a trace (if plotting a line graph, a trace is a line for example and is similar to a layer in ggplot).
+
+```{r Plotly}
+
+# more sample data
+us_rent_income %>%
+  pivot_wider(names_from = variable, values_from = c(estimate, moe)) %>% # pivot/spread/widen the data
+  mutate(yearly_rent = 12 * estimate_rent) %>% # add a column for yearly rent
+  drop_na() %>% # get rid of incomplete data for example purposes
+  plot_ly(x =~ estimate_income, y =~ yearly_rent, type = 'scatter', mode = 'markers',
+        hoverinfo = 'text',
+        text = ~paste('State: ', NAME)
+        ) %>% # generate the plot
+  filter(estimate_income == max(estimate_income) | estimate_income == median(estimate_income) | estimate_income == min(estimate_income)) %>% # add annotations for key values
+  add_annotations(x =~ estimate_income,
+                  y =~ yearly_rent,
+                  text =~ NAME)
+
+```
+
+
+## Links
+
+1. Interactive tutorial https://www.datacamp.com/community/tutorials/pipe-r-tutorial
+2. R for Data Science chapter https://r4ds.had.co.nz/pipes.html  
+3. Magrittr vignette (the main package) https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html
+
+## Style
+
+It's suggested that you don't use the operator in *Magrittr* which is %<>% if you want to assign the result of your process back to the original object/data, as it can easily be misread. See the samples above for the suggested syntax (but feel free to do whatever makes sense in the context). 
+
+It tends to be easier to read if you write each function in the pipe on a separate line, and it's suggested that once the pipe becomes too long (maybe 8+ steps) that you split it into multiple pipes, with each pipe resulting in an intermediate output variable.
