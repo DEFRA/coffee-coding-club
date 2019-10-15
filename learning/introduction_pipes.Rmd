@@ -2,13 +2,16 @@
 title: "Pipes Tutorial"
 author: "Sam Finlayson"
 date: "14 October 2019"
-output: html_document
+output: 
+  html_document:
+    self_contained: yes
 ---
 
 #Introduction
 
 This is an introduction to *pipes* in R, which are a useful tool for various tasks. A more extensive (and professional) introduction to pipes is available in the R for Data Science book at https://r4ds.had.co.nz/pipes.html.  
-Pipes in R are sourced from the **magrittr** library, though if you are using a **tidyverse** package (such as **dplyr**), you don't explicitly need to import **magrittr**.
+Pipes in R are sourced from the **magrittr** library, though if you are using a **tidyverse** package (such as **dplyr**), you don't explicitly need to import **magrittr**.  
+You can run the individual code chunks in R by opening this in RStudio (it needs to be saved/open as an RMarkdown file), or you can simply download and look at the Html file which the code produces.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
@@ -180,3 +183,7 @@ us_rent_income %>%
 It's suggested that you don't use the operator in *Magrittr* which is %<>% if you want to assign the result of your process back to the original object/data, as it can easily be misread. See the samples above for the suggested syntax (but feel free to do whatever makes sense in the context). 
 
 It tends to be easier to read if you write each function in the pipe on a separate line, and it's suggested that once the pipe becomes too long (maybe 8+ steps) that you split it into multiple pipes, with each pipe resulting in an intermediate output variable.
+
+##
+
+Contact Sam Finlayson (on the mailing list) if you have any problems or see any mistakes. Please also feel free to clone this and add or correct things if you want.
