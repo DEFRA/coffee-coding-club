@@ -1,0 +1,138 @@
+---
+title: "ggplot2 tutorial"
+author: "Martin Duggan"
+date: "07/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+#opts_knit$set(root.dir = "G:/random - to be deleted")
+```
+
+# Introduction
+
+This is an introduction to *ggplot2* in R, which is a useful package for creating plots. A more extensive introduction to ggplot2 is available in the R for Data Science book at https://r4ds.had.co.nz/data-visualisation.html.  
+ggplot2 is part of the tidyverse similar to other packages such as *DPLYR*.  
+You can run the individual code chunks in R by opening this in RStudio (it needs to be saved/open as an RMarkdown file), or you can simply download and look at the HTML file which the code produces.
+
+## Load librarys
+```{r Libraries, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(plotly)
+```
+
+## View the data
+```{r load_data, message=FALSE, warning=FALSE}
+head(iris,5)
+```
+
+## Base R plots
+
+Plotting in base R defaults to a scatter plot.
+
+```{r basic, echo=TRUE, message=FALSE}
+plot(x=iris$Petal.Width,y=iris$Petal.Length)
+```
+
+## How to plot with ggplot
+
+```{r ggplot1, echo=TRUE, message=FALSE}
+ggplot(data = iris) + geom_point(aes(x=Petal.Width,y=Petal.Length))
+```
+
+The ```ggplot()``` function creates a empty plot which you can add layers to. 
+
+We've added a layer using the function ```geom_point()```. Within this function we have ```aes()``` which is where we enter our aesthetics. There are lots of aesthetics you can use to expore the data and add to your visual.
+
+```{r ggplot2, echo=TRUE, message=FALSE}
+ggplot(data = iris) + geom_point(aes(x=Petal.Width,y=Petal.Length,shape=Species,colour=Species))
+```
+
+These can be used for both discrete and continuous variables.
+
+
+```{r ggplot3, echo=TRUE, message=FALSE}
+ggplot(data = iris) + geom_point(aes(x=Petal.Width,y=Petal.Length,shape=Species,colour=Sepal.Length))
+```
+
+There is also an option to use facet grids or wraps to seperate your data into different graphs.
+
+```{r ggplot4, echo=TRUE, message=FALSE}
+ggplot(data = iris) + geom_point(aes(x=Petal.Width,y=Petal.Length,colour=Sepal.Length))+facet_wrap(~Species)
+```
+
+There are a range of different layer you can add to charts such as ```geom_bar()``` which lets you plot a bar chart. To demonstrate this we will plot the average petal length for each plant specie.
+
+```{r ggplot5, echo=TRUE, message=FALSE}
+iris2 <- iris %>% group_by(Species) %>% summarize(Ave.Petal.Length=mean(Petal.Length))
+iris2
+ggplot(data = iris2) + geom_bar(aes(x=Species,fill=Species,y=Ave.Petal.Length),stat="identity")
+```
+
+For more complex visuals you can add more than one layer to your ggplot, even from different datasets
+
+```{r ggplot6, echo=TRUE, message=FALSE}
+iris2 <- iris %>% group_by(Species) %>% summarize(Ave.Petal.Length=mean(Petal.Length))
+
+iris3 <- iris %>% group_by(Species) %>% summarize(Min=min(Petal.Length),Max=max(Petal.Length))
+iris3
+
+ggplot(data = iris2) + geom_bar(aes(x=Species,fill=Species,y=Ave.Petal.Length),stat="identity")+geom_errorbar(data=iris3,aes(x=Species,ymin=Min,ymax=Max))
+```
+
+ggplot2 has lots of options to change the theme and to pretty the graphs up.
+
+```{r ggplot7, echo=TRUE, message=FALSE}
+iris2 <- iris %>% group_by(Species) %>% summarize(Ave.Petal.Length=mean(Petal.Length))
+
+iris3 <- iris %>% group_by(Species) %>% summarize(Min=min(Petal.Length),Max=max(Petal.Length))
+
+ggplot(data = iris2) + geom_bar(aes(x=Species,fill=Species,y=Ave.Petal.Length),stat="identity")+geom_errorbar(data=iris3,aes(x=Species,ymin=Min,ymax=Max),width=0.5)+theme_bw()+labs(title="Average petal length against specie of flower",y="Average Petal length",subtitle = "Here is a subtitle",caption = "Made using ggplot2")
+```
+
+## Interactive plots
+
+By using the function ```ggplotly()``` in the plotly library you can make your plots interactive.
+
+```{r ggplot8, echo=TRUE, message=FALSE}
+iris2 <- iris %>% group_by(Species) %>% summarize(Ave.Petal.Length=mean(Petal.Length))
+
+iris3 <- iris %>% group_by(Species) %>% summarize(Min=min(Petal.Length),Max=max(Petal.Length))
+
+p=ggplot(data = iris2) + geom_bar(aes(x=Species,fill=Species,y=Ave.Petal.Length),stat="identity")+geom_errorbar(data=iris3,aes(x=Species,ymin=Min,ymax=Max),width=0.5)+theme_bw()+labs(title="Average petal length against specie of flower",y="Average Petal length",subtitle = "Here is a subtitle",caption = "Made using ggplot2")
+
+ggplotly({p})
+```
+
+```ggplotly()``` converts the static ggplot into an interactive plotly graph. As this happens some of the features from ggplot are lost such as the subtitle, caption and any extra layers. Most of these elements we can add back in using plotly. Although depending on the elements in question it can be easier to recreate your graph in plotly.
+
+```{r ggplot9, echo=TRUE, message=FALSE}
+iris2 <- iris %>% group_by(Species) %>% summarize(Ave.Petal.Length=mean(Petal.Length))
+
+iris3 <- iris %>% group_by(Species) %>% summarize(Min=min(Petal.Length),Max=max(Petal.Length))
+
+p=ggplot(data = iris2) + geom_bar(aes(x=Species,fill=Species,y=Ave.Petal.Length),stat="identity")+geom_errorbar(data=iris3,aes(x=Species,ymin=Min,ymax=Max),width=0.5)+theme_bw()+labs(title="Average petal length against specie of flower",y="Average Petal length",subtitle = "Here is a subtitle",caption = "Made using ggplot2")
+
+ggplotly({p}) %>% layout(
+  annotations = list(x = 1, y = -0.1, font=list(size=10),
+                     text = paste("Made using ggplot2"),
+                     showarrow = FALSE, xref = "paper", yref = "paper",
+                     xanchor = "right", yanchor = "auto")
+)
+```
+
+## Links
+
+1. Interactive tutorial https://www.datacamp.com/courses/data-visualization-with-ggplot2-1
+2. R for Data Science chapter https://r4ds.had.co.nz/data-visualisation.html  
+3. ggplot2 (the main package) https://cran.r-project.org/web/packages/ggplot2/ggplot2.pdf
+4. Cheat sheet https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf 
+
+
+## Contact
+
+Contact Martin Duggan (on the mailing list) if you have any problems or see any mistakes. Please also feel free to clone this and add or correct things if you want.
+
