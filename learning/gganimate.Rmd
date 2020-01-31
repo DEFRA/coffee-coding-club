@@ -1,0 +1,152 @@
+---
+title: "gganimate tutorial"
+author: "Martin Duggan"
+date: "19/01/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+#opts_knit$set(root.dir = "G:/random - to be deleted")
+```
+
+# Introduction
+
+This is an introduction to *gganimate* in R, which is a useful package for creating animated graphs, such as gifs. 
+
+gganimate is a addon library which works with ggplot2. This allows you to create animated graphs using the ggplot framework with additional functions to animate them. You can run the individual code chunks in R by opening this in RStudio (it needs to be saved/open as an RMarkdown file), or you can simply download and look at the HTML file which the code produces.
+
+There are many different plots where you can use animations  to improve your visual. We are going to go through using them to make a bar chart which have been popular on social media and often dubbed as a racing bar chart. As they often show how prices increase over time and the different bars *race* eachother to be top. There are also many other types of graphs and charts where animations can be useful such as scatte and line charts.
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gganimate)
+library(gifski)
+library(tidyr)
+library(dplyr)
+```
+
+
+## Create  dataset
+```{r load_data, message=FALSE,warning=FALSE}
+Data=data.frame(Year=seq(2012,2019,1),
+                x=seq(1,20,length.out = 8),
+                y=seq(15,15,length.out = 8),
+                z=seq(5,7,length.out = 8),
+                a=seq(15,7,length.out = 8),
+                b=seq(1,10,length.out = 8),
+                c=seq(10,7,length.out = 8)
+                )
+
+head(Data)
+```
+
+## Tidy data
+Here we are going to transform the data from wide to long and also add a rank element which will rank the values from heighest to lowest for each year
+```{r filter, message=F,warning=FALSE}
+Data2 <- Data %>% 
+  gather(variable,value,x:c)
+
+# So far we have transformed the data from wide to long
+# Next we need to rank the variable 1 to 6 for each year
+Data3 <- Data2 %>%
+  group_by(Year) %>%
+  mutate(rank=rank(-value,ties.method = "random")
+  )
+
+head(Data3)
+```
+
+## Creating the plot
+We create the plot in the same way we'd create any other plot in ggplot but with an additional function *transition_states*, this determines what variable you are changing with time and how quickly this happens.
+```{r animate_1,message=F,warning=F}
+anim <-  ggplot(Data3,aes(rank,group=variable,fill=variable))+
+  geom_tile(aes(y = value/2,
+                height = value,
+                width = 0.9), alpha = 0.8, color = NA) +
+  geom_text(aes(y = 0, label = paste(variable, " ")), vjust = 0.2, hjust = 1) +
+  geom_text(aes(y=value,label = value, hjust=0)) +
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_reverse() +
+  guides(color = FALSE, fill = FALSE) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position="none",
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_line( size=.1, color="grey" ),
+        plot.title=element_text(size=25, hjust=0.5, face="bold", colour="grey", vjust=-1),
+        plot.subtitle=element_text(size=18, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=8, hjust=0.5, face="italic", color="grey"),
+        plot.background=element_blank(),
+        plot.margin = margin(2,2, 2, 4, "cm"))+
+  transition_states(Year, transition_length = 4, state_length = 12) +
+  view_follow(fixed_x = TRUE)  +
+  labs(title = 'Meaningful Title : {closest_state}',  
+       subtitle  =  "Meaningful Sub title",
+       caption  = "Data Source: ...") 
+```
+Now we've created our plot, next we need to save it. Here we can determine how many frames the gif has, how quickly it goes from the gif as well as the diamentions of the gif.
+
+```{r save_gif,message=F,warning=F}
+animate(anim, 200, fps = 60,  width = 1200, height = 1000, 
+        renderer = gifski_renderer("example.gif"))
+```
+
+There is a lot of flexibility in how we make visuals in ggplot. Below we rerun the the same data but making a few visual chagnes.
+
+```{r animate_2,message=F,warning=F}
+anim <-  ggplot(Data3,aes(rank,group=variable,fill=variable,colour=variable))+
+  geom_tile(aes(y = value/2,
+                height = value,
+                width = 0.9), alpha = 0.8, color = NA) +
+  geom_text(aes(y = 0, label = paste(variable, " ")), vjust = 0.2, hjust = 1,size=12) +
+  geom_text(aes(y=value,label = round(value,2), hjust=0),size=12) +
+  coord_flip(clip = "off", expand = FALSE) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_reverse() +
+  scale_fill_manual(values = c("#007CBA","#D51067","#FF9E16","#00A33B","black","yellow","purple","blue","green","brown"))+
+  scale_colour_manual(values = c("#007CBA","#D51067","#FF9E16","#00A33B","black","yellow","purple","blue","green","brown"))+
+  guides(color = FALSE, fill = FALSE) +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        legend.position="none",
+        panel.background=element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_line( size=.1, color="grey" ),
+        plot.title=element_text(size=25, hjust=0.5, face="bold", colour="grey", vjust=-1),
+        plot.subtitle=element_text(size=18, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=18, hjust=0.5, face="bold", color="red"),
+        plot.background=element_blank(),
+        plot.margin = margin(4,4, 4, 8, "cm")) +
+  transition_states(Year, transition_length = 4, state_length = 1) +
+  view_follow(fixed_x = TRUE)  +
+  labs(title = 'Meaningful Title : {closest_state}',  
+       subtitle  =  "Meaningful Sub Title",
+       caption  = "Data Source: ..") 
+
+animate(anim, 200, fps = 20,  width = 1200, height = 1000, 
+        renderer = gifski_renderer("example_final.gif")) 
+```
+
+# Useful Links
+
+[https://towardsdatascience.com/create-animated-bar-charts-using-r-31d09e5841da](https://towardsdatascience.com/create-animated-bar-charts-using-r-31d09e5841da)
+
+[https://www.datanovia.com/en/blog/gganimate-how-to-create-plots-with-beautiful-animation-in-r/](https://www.datanovia.com/en/blog/gganimate-how-to-create-plots-with-beautiful-animation-in-r/)
