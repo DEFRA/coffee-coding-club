@@ -1,0 +1,131 @@
+---
+title: "Rmarkdown"
+author: "Martin Duggan"
+date: "05/02/2020"
+output: 
+  html_document:
+    self_contained: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, MS PowerPoint and MS Word documents. Using these formats you can use them to make a range of outputs:
+
+* Books
+* Dashboards
+* Presentations
+* Reports
+* Websites
+
+We are able to make all of these by only using rmarkdown documents **.Rmd**
+
+There is a lot of flexability in Rmarkdown and it's worth exploring the different formats available to make sure you're using the best tools for the job. For example if you want to make dashboards there are a range of formats you can use and the most appropriate format will depend on your needs.
+
+Another useful feature of Rmarkdown is that you're not limited to just using R. It actually supports a large number of languages including:
+
+* Python
+* Shell scripts
+* SQL
+* Rcpp
+* Stan
+* JavaScript 
+* CSS
+* Julia
+* C
+* Fortan
+
+## Why use Rmarkdown
+
+One of the main reason to use R Markdown is becuase you can do your analysis along side your output. This can make it much easier to create **reproducible** documents, desk instrcutions and share your analysis compared to your more traditional workflow. This is where where you may perform your analysis in Access/Excel, create your charts in Excel and then copy them over into Word.
+
+Other benefits of performing your analysis along side creating your output is that you can prepopulate text. This means rather than trawlling through your documents manually editing all the facts and figures these can be automatically generated. This can also have the benefit of reducing human error as well as reducing work load.
+
+## How do you use Markdown
+
+RStudio has the option to create .Rmd files under *new file*, this will then bring up a popup screen which allows you to choose the type of file you want to create from the Rmarkdown file.
+
+![Alt text to image](markdown.PNG)
+
+All .Rmd files start the same and hold key information about the document. The main aspect of this is the output, this determines what your file will get "knitted" into, whether its a HTML (like below) or a word document etc.
+
+```yaml
+---
+title: "Untitled"
+author: "Martin Duggan"
+date: "05/02/2020"
+output: html_document
+---
+```
+
+After said the file type you want to create you can now start making your file/doing your analysis. To do this all you need to do is start writing below the header like you would with a normal text file. 
+```yaml
+---
+output: word_document
+---
+You can write here like you would in a normal word document
+```
+![Output from the code above](word_doc_1.PNG)
+
+Similar to Word and other word processors there is a large range of formatting you can do on your text. There are a few standard methods in Rmarkdown but depending on your format there are often more than one way to format your text. E.g. If you are creating a HTML you can use all of the normal HTML handles.
+
+## How to add R code into your document
+
+There are two way to add R code into your document 
+
+1) Chunks
+2) Inline
+
+First we'll go through chunks, these are larger pieces of code and can include many different elements. Such as loading libraries or data, perferrming data manipulation or outputs such as plots and tables. 
+````markdown
+---
+output: word_document
+---
+
+Below is a plot of mtcars
+`r ''````{r} 
+plot(mtcars)
+``` 
+````
+
+![Output from the code above includes graph](word_doc_2.PNG)
+
+There are many options within your chunks of data. To find out more about these please look at the reference guide at the end of the document. Some of these options include, showing your code with no output, proudcing an output but with no code and lots in between.
+
+Inline code is another way to include R code in your documents. This tends to be a good method to include prepopulated text. There are less options with inline code and for most R code that you'll want to include it in chunks rather than inline. This is because chunks are better set out for large amounts of code and inline is only really suited to have a single line of code.
+
+````markdown
+---
+output: word_document
+---
+
+Below is a plot of mtcars 
+`r ''````{r} 
+plot(x=mtcars$cyl,y=mtcars$hp)
+max_hp=max(mtcars$hp,na.rm=T)
+``` 
+The highest horsepower car in the mtcars dataset has `r '\x60r max_hp\x60'` horsepower
+
+````
+![Output from the code above includes graph and dynamic text](word_doc_3.PNG)
+
+Above we can see the powerful feature in Rmarkdown which allows variables to be passed through to different chunks and inline text. The main rule to be aware of is that similar to a normal R script the chunks get read in order, the same way you would read the script. So if you want to call a variable or use a package you need to assign/load it before you call it.
+
+##### The last thing that you'll need to know is how you go from .Rmd file to your word, HTML, etc file. To do this you need to click on the knit button within RStudio.
+
+
+## Further links
+There is a large range of web resources dedicated to Rmarkdown, I would recommond the following as a good starting place.
+
+<https://bookdown.org/yihui/rmarkdown/>
+
+<http://rmarkdown.rstudio.com>
+
+<https://rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf>
+
+<https://rstudio.com/resources/cheatsheets/>
+
+
