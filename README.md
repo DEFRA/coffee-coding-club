@@ -26,3 +26,6 @@ The aim of the Coffee & Coding meetups is to nurture, enable and encourage a vib
 | Date            | Time  | Room    | Title                                                        | Presenter                                     | Abstract                                                     |
 | :-------------- | :---- | :------ | :----------------------------------------------------------- | :-------------------------------------------- | :----------------------------------------------------------- |
 | Monday 24 Feb 2020 | 12:00 | FH: CRO7, 2MS: SG42 | 'sdcTable' package | Adam Goude  | Demonstrating use of the package "sdcTable", whic he has used to apply first and secondary statistical suppresion on a table. |
+
+
+###### *format forked from www.github.com/departmentfortransport/coffee-and-coding*
