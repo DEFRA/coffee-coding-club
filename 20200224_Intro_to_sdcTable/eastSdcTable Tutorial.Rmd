@@ -1,0 +1,80 @@
+---
+title: "easySdcTable Tutorial"
+author: "Adam Goude"
+date: "07/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+
+data=data.frame(
+  Nuts1=c(rep("Yorkshire and The Humber",11),rep("North East (England)",7)),
+  Nuts3=c("North Yorkshire cc","East Riding of Yorkshire","Barnsley, Doncaster and Rotherham","North and North East Lincolnshire","York","Sheffield","Bradford","Kingston upon Hull, City of","Calderdale and Kirklees","Wakefield","Leeds","Durham cc","Hartlepool and Stockton-on-Tees","South Teesside","Tyneside","Northumberland","Sunderland","Darlington"),
+  Qty=c(500,99,15,83,2,22,0,100,0,0,0,0,0,0,0,0,7,3)
+)
+
+```
+
+# Introduction
+
+This is a tutorial for controlling statistical disclosure in R using a package called "easySdcTable". The package allows you to apply primary and secondary suppressions to your data.
+
+## Load library
+```{r Libraries, message=FALSE, warning=FALSE}
+library(easySdcTable)
+
+```
+
+## View the data
+
+The below example data contains nuts1 and nuts3 regional data and includes a quantity (Qty) variable that potentially need to be suppressed. 
+
+```{r load_data, message=FALSE, warning=FALSE}
+data
+```
+
+## ProtectTable()
+
+The ProtectTable() function applies both primary and secondary suppressions based on a frequency rule as set by the user. 
+
+dimVar: the data frame variables you want to group by                                 
+freqVar: the dataframe variable you want to apply suppressions to                             
+maxN: All cells having counts <= maxN are set as primary suppressed                                   
+protectZeros: When TRUE empty cells (count=0) is considered sensitive                       
+removeZeros: When TRUE, rows with zero count will be removed from the data within the algorithm         
+Addname: when TRUE, also check subtotals and suppress accodingly                                  
+suppression: Value to replace the suppressed value. Default is NA
+
+Running the ProtectTable() function generates the following in the R console and is for information only. Essentially the function is running through each of the values, applying primary suppressions and then calculating and applying secondary suppressions (where applicable).
+
+```{r protect_data, message=FALSE, warning=FALSE}
+calc_supp <- ProtectTable(data, dimVar = c("Nuts1","Nuts3"), freqVar ="Qty",maxN = 5,removeZeros = FALSE,protectZeros = FALSE, addname = TRUE)
+
+```
+
+## View Suppressed Data
+
+Once the calculations have run, the following table (tibble) is created. Each record is assigned an sdcStatus. These are: 
+
+S = Safe to publish    
+U = Primary Suppression     
+x = Secondary Suppression
+
+Suppressed values are set to 'NA' in the suppressed column.
+
+```{r view_data, message=FALSE, warning=FALSE}
+calc_sup_res = (calc_supp$data)
+calc_sup_res
+
+```
+
+As you would expect, both York and Darlington have been suppressed as they are <= 5. Despite being suppressed, both values can still be calculated as only one suppression exists for the Nuts1 regions concerned. In order to remove the ability to calculate the suppressed values the function finds the next lowest values and applies a secondary suppression, in this case, Barnsley (etc) and Sunderland.
+
+## Further Reading
+
+https://cran.r-project.org/web/packages/easySdcTable/easySdcTable.pdf
+
+https://cran.r-project.org/web/packages/easySdcTable/vignettes/easySdcTableVignette.html
+
