@@ -1,7 +1,7 @@
 ---
 title: "Intro to Leaflet Tutorial"
 author: "Anthony Walker"
-date: "13/03/2020"
+date: "06/04/2020"
 output: html_document
 ---
 
@@ -50,8 +50,12 @@ library(tidyverse)
 
 Similar to the packages in the tidyverse, the leaflet package makes use of the pipe operator (i.e., %>%) from the magrittr package to chain function calls together. This means we can pipe the result of one function into another without having to store the intermediate output in an object. 
 
-```{r load_data, message=FALSE, warning=FALSE}
+```{r echo=FALSE}
+head(mtcars)
+```
 
+
+```{r load_data, message=FALSE, warning=FALSE}
 mtcars  %>% 
     mutate(car = rownames(.))  %>% 
     select(car, mpg)  %>% 
@@ -98,7 +102,7 @@ For example, the below markers indicate locations of Automatic Urban and Rural N
 head(AURNMeta)
 
 leaflet(data = AURNMeta) %>% addTiles() %>%
-  addMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName))
+  addMarkers(~Longitude, ~Latitude)
 ```
 
 ### Chloropleths
