@@ -1,5 +1,5 @@
 ---
-title: "Intro to Leaflet Tutorial"
+title: "Introduction to Leaflet"
 author: "Anthony Walker"
 date: "06/04/2020"
 output: html_document
@@ -29,14 +29,12 @@ This R package makes it easy to integrate and control Leaflet maps in R.
     + Map tiles
     + Markers
     + Polygons
-    + Lines
     + Popups
     + GeoJSON
 * Create maps right from the R console or RStudio
 * Embed maps in knitr/R Markdown documents and Shiny apps
 * Easily render spatial objects from the sp or sf packages, or data frames with latitude/longitude columns
 * Use map bounds and mouse events to drive Shiny logic
-* Display maps in non spherical mercator projections
 * Augment map features using chosen plugins from leaflet plugins repository
 
 ## Load library
@@ -105,6 +103,57 @@ leaflet(data = AURNMeta) %>% addTiles() %>%
   addMarkers(~Longitude, ~Latitude)
 ```
 
+We can also add some supporting information to each marker, in the form of either a popup or a label. A popup is visible when the marker is clicked, and lable is visible when the marker is moused over. 
+
+```{r}
+
+leaflet(data = AURNMeta) %>% addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName))
+```
+
+These maps are very messy, and the more points you add the less efficiently they run! To help tidy things up, we can cluster the markers together with the ```clusterOptions = markerClusterOptions()``` call!
+
+
+```{r}
+leaflet(data = AURNMeta) %>% addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName),
+  clusterOptions = markerClusterOptions())
+```
+
+#### Circles!
+
+We can also have different types of markers! Circle markers
+
+```{r}
+leaflet(data = AURNMeta) %>% addTiles() %>% addCircleMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName))
+
+```
+
+Circle makers give us a little more flexibility, in that we can adjust the radius of the circle and it's colour according to the underlying data!
+
+Lets add a binary vector to the data frame indicating whether the AURN station is still operational or not.
+
+```{r}
+AURNMeta$siteoperational <- 0
+AURNMeta$siteoperational[AURNMeta$EndDate == 'ongoing'] <- 1
+```
+
+Lets now colour the circle, and change its radius dependent on whether it's operational (1) or non-operational (0).
+
+It's worth noting that the circle radius does not change as you zoom in.
+
+```{r}
+pal <- colorFactor(c("red", "navy"), domain = c("1", "0"))
+
+leaflet(AURNMeta) %>% addTiles() %>%
+  addCircleMarkers(
+    radius = ~ifelse(siteoperational == "1", 5, 6),
+    color = ~pal(siteoperational),
+    stroke = FALSE, fillOpacity = 0.8, label = paste("Site Name:",AURNMeta$SiteName,"Site Code: ",AURNMeta$SiteCode, "operational: ", AURNMeta$siteoperational)
+  )
+```
+
+
 ### Chloropleths
 
 
@@ -121,7 +170,7 @@ Once we have this data we can then simply plot the boundary shapes by ensuring t
 
 ```{r}
 leaflet(englandLA) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5) %>% addPolygons()
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons()
 ```
 
 
@@ -142,7 +191,7 @@ bins <- c(0, 10, 20, 50, 100, 200, 500, 1000, Inf)
 pal <- colorBin("YlOrRd", domain = englandLA$Cases, bins = bins)
 
 leaflet(englandLA) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5) %>% addPolygons(
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
   fillColor = ~pal(Cases),
   weight = 2,
   opacity = 1,
@@ -157,7 +206,7 @@ Lets add some interactivity when you scroll over the Local Authority. Easy to do
 ```{r}
 
 leaflet(englandLA) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5) %>% addPolygons(
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
   fillColor = ~pal(Cases),
   weight = 2,
   opacity = 1,
@@ -182,7 +231,7 @@ labels <- sprintf(
 ) %>% lapply(htmltools::HTML)
 
 leaflet(englandLA) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5) %>% addPolygons(
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
   fillColor = ~pal(Cases),
   weight = 2,
   opacity = 1,
@@ -205,11 +254,11 @@ leaflet(englandLA) %>%
 
 ```
 
-
-
-http://rstudio.github.io/leaflet/
+Hopefully this is enough to get you all going! There are lots more things that leaflet is capable of, from customisable icons, shiny integration, raster images, layers etc. There are plenty of resources available online, the http://rstudio.github.io/leaflet/ page is the best to get started and is the basis for much of this introduction!
 
 https://cran.r-project.org/web/packages/leaflet/leaflet.pdf
+
+http://rstudio.github.io/leaflet/
 
 https://data.gov.uk/dataset/daaafdcc-f7c7-41ff-80eb-b0b15efd1414/local-authority-districts-december-2017-generalised-clipped-boundaries-in-united-kingdom-wgs84
 
