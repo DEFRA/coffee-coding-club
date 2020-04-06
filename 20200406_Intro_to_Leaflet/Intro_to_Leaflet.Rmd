@@ -1,0 +1,265 @@
+---
+title: "Introduction to Leaflet"
+author: "Anthony Walker"
+date: "06/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require("knitr")
+require('leaflet')
+require('openair')
+## data
+
+AURNMeta <- readRDS("AURNMeta.rds")
+AURNMeta <- subset(AURNMeta,AURNMeta$Parameter == 'NO2')
+
+```
+
+# Introduction
+
+Leaflet is one of the most popular open-source JavaScript libraries for interactive maps. It’s used by websites ranging from The New York Times and The Washington Post to GitHub and Flickr, as well as GIS specialists like OpenStreetMap, Mapbox, and CartoDB.
+
+This R package makes it easy to integrate and control Leaflet maps in R.
+
+## Features
+* Interactive panning/zooming
+* Compose maps using arbitrary combinations of:
+    + Map tiles
+    + Markers
+    + Polygons
+    + Popups
+    + GeoJSON
+* Create maps right from the R console or RStudio
+* Embed maps in knitr/R Markdown documents and Shiny apps
+* Easily render spatial objects from the sp or sf packages, or data frames with latitude/longitude columns
+* Use map bounds and mouse events to drive Shiny logic
+* Augment map features using chosen plugins from leaflet plugins repository
+
+## Load library
+```{r Libraries, message=FALSE, warning=FALSE}
+library(leaflet)
+library(tidyverse)
+
+```
+
+## Functionality
+
+Similar to the packages in the tidyverse, the leaflet package makes use of the pipe operator (i.e., %>%) from the magrittr package to chain function calls together. This means we can pipe the result of one function into another without having to store the intermediate output in an object. 
+
+```{r echo=FALSE}
+head(mtcars)
+```
+
+
+```{r load_data, message=FALSE, warning=FALSE}
+mtcars  %>% 
+    mutate(car = rownames(.))  %>% 
+    select(car, mpg)  %>% 
+    filter(mpg >= 25)  
+```
+
+### Map and Tiles 
+
+To create a web map in R, you will chain together a series of function calls using the %>% operator. Our first function ```leaflet()``` will initialize the htmlwidget then we will add a map tile using the ```addTiles()``` function. This provides the default base map tiles from OpenStreetMap
+
+```{r}
+leaflet() %>%
+    addTiles() %>% setView(-3.166340,54.913142, zoom = 5)
+```
+
+We can also select alternative third party tiles using the ```addProviderTiles()``` function. 
+
+```{r}
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5)
+```
+
+
+You can also use addWMSTiles() to add WMS (Web Map Service) tiles. The below map shows the UK AIR web map tile showing modelled background and roadside air quality concentration maps from Defra's national Pollution Climate Model (PCM). 
+
+
+```{r}
+leaflet() %>% addProviderTiles(providers$CartoDB.Positron) %>% setView(-3.166340,54.913142, zoom = 5) %>%
+  addWMSTiles(
+    "https://uk-air.defra.gov.uk/view/services/PCM/NO2Roads/MapServer/WMSServer",
+    layers = "18",
+    options = WMSTileOptions(format = "image/png", transparent = TRUE),
+    attribution = "UK-AIR - OGC® Web Map Service Interface Standard"
+  )
+```
+
+### Markers
+
+Use markers to call out points on the map. Marker locations are expressed in latitude/longitude coordinates, and can either appear as icons or as circles.
+
+For example, the below markers indicate locations of Automatic Urban and Rural Network (AURN) air quality monitoring stations. 
+
+```{r}
+head(AURNMeta)
+
+leaflet(data = AURNMeta) %>% addTiles() %>%
+  addMarkers(~Longitude, ~Latitude)
+```
+
+We can also add some supporting information to each marker, in the form of either a popup or a label. A popup is visible when the marker is clicked, and lable is visible when the marker is moused over. 
+
+```{r}
+
+leaflet(data = AURNMeta) %>% addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName))
+```
+
+These maps are very messy, and the more points you add the less efficiently they run! To help tidy things up, we can cluster the markers together with the ```clusterOptions = markerClusterOptions()``` call!
+
+
+```{r}
+leaflet(data = AURNMeta) %>% addTiles() %>%
+  addMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName),
+  clusterOptions = markerClusterOptions())
+```
+
+#### Circles!
+
+We can also have different types of markers! Circle markers
+
+```{r}
+leaflet(data = AURNMeta) %>% addTiles() %>% addCircleMarkers(~Longitude, ~Latitude, popup = ~as.character(SiteCode), label = ~as.character(SiteName))
+
+```
+
+Circle makers give us a little more flexibility, in that we can adjust the radius of the circle and it's colour according to the underlying data!
+
+Lets add a binary vector to the data frame indicating whether the AURN station is still operational or not.
+
+```{r}
+AURNMeta$siteoperational <- 0
+AURNMeta$siteoperational[AURNMeta$EndDate == 'ongoing'] <- 1
+```
+
+Lets now colour the circle, and change its radius dependent on whether it's operational (1) or non-operational (0).
+
+It's worth noting that the circle radius does not change as you zoom in.
+
+```{r}
+pal <- colorFactor(c("red", "navy"), domain = c("1", "0"))
+
+leaflet(AURNMeta) %>% addTiles() %>%
+  addCircleMarkers(
+    radius = ~ifelse(siteoperational == "1", 5, 6),
+    color = ~pal(siteoperational),
+    stroke = FALSE, fillOpacity = 0.8, label = paste("Site Name:",AURNMeta$SiteName,"Site Code: ",AURNMeta$SiteCode, "operational: ", AURNMeta$siteoperational)
+  )
+```
+
+
+### Chloropleths
+
+
+A choropleth map is a type of thematic map in which areas are shaded or patterned in proportion to a statistical variable that represents an aggregate summary of a geographic characteristic within each area, such as population density.
+
+We can create these maps by reading existing data sources for area boundaries such as that of Local Authority Boundaries in England. We can read these as a JSON file format using the rgdal pacakge and it's ```readOGR``` function. This reads the JSON file into R as an 'SpatialPolygonsDataFrame' class. This contains both spatial data to plot this on a map, and the supporting data for each of those geographical areas. 
+
+```{r}
+englandLA <- rgdal::readOGR("england_topo.json")
+```
+
+Once we have this data we can then simply plot the boundary shapes by ensuring the data is called in the leaflet map by containing it within the ```leaflet(data) %>%``` initial function call. Then by simply calling the function ```addPolygons()```
+
+
+```{r}
+leaflet(englandLA) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons()
+```
+
+
+```{r include=FALSE}
+englandLA <- readRDS("englandLACOVID.rds")
+```
+
+Lets now add some colour to the shapes! I've added the latest Public Health England Coronavirus data (as of 30/03/20), which indicates confirmed cases in each Local Authority.
+
+We can then colour these Local Authority shapes by creating a colour palette with the ```colorBin()``` function. This is one of a few colour functions, this one specifically takes the data and colours it based on preset or automatic bins; i.e. grouping the data into ranges such as 0-10, 11-20, 21-30 etc. It's easy to pre-call the ```colorBin()``` function into a variable such as "pal", which can then be called just as pal() with all the options preset (colour palette, domain, bins).
+
+We can set the specific bins by creating a bins variable and creating a numeric list defining each breakpoint of the bin as below.
+
+To then set the colour, we simply cal the ```fillColor``` function, and then call the pre-made ```pal()``` function pointing to the "Cases" data vector inside our dataset.
+
+```{r}
+bins <- c(0, 10, 20, 50, 100, 200, 500, 1000, Inf)
+pal <- colorBin("YlOrRd", domain = englandLA$Cases, bins = bins)
+
+leaflet(englandLA) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
+  fillColor = ~pal(Cases),
+  weight = 2,
+  opacity = 1,
+  color = "white",
+  dashArray = "3",
+  fillOpacity = 0.7)
+```
+
+Lets add some interactivity when you scroll over the Local Authority. Easy to do with the ```highlight = ``` option;
+
+
+```{r}
+
+leaflet(englandLA) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
+  fillColor = ~pal(Cases),
+  weight = 2,
+  opacity = 1,
+  color = "white",
+  dashArray = "3",
+  fillOpacity = 0.7,
+  highlight = highlightOptions(
+    weight = 5,
+    color = "#666",
+    dashArray = "",
+    fillOpacity = 0.7,
+    bringToFront = TRUE))
+
+```
+
+Now we can add label information for each of the Local Authorities with the ```label = ``` option. Lables can take HTML formatting, and it's usually easier to create the label variable outside the map function to keep things neater as below;
+
+```{r}
+labels <- sprintf(
+  "<strong>%s</strong><br/>%g cases of COVID-19",
+  englandLA$LAD13NM, englandLA$Cases
+) %>% lapply(htmltools::HTML)
+
+leaflet(englandLA) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>% setView(-1.166340,52.913142, zoom = 6) %>% addPolygons(
+  fillColor = ~pal(Cases),
+  weight = 2,
+  opacity = 1,
+  color = "white",
+  dashArray = "3",
+  fillOpacity = 0.7,
+  highlight = highlightOptions(
+    weight = 5,
+    color = "#666",
+    dashArray = "",
+    fillOpacity = 0.7,
+    bringToFront = TRUE),
+  label = labels,
+  labelOptions = labelOptions(
+    style = list("font-weight" = "normal", padding = "3px 8px"),
+    textsize = "15px",
+    direction = "auto")) %>% addLegend(pal = pal, values = ~density, opacity = 0.7, title = "COVID-19 cases (as of 30/03/20)",
+  position = "bottomright")
+
+
+```
+
+Hopefully this is enough to get you all going! There are lots more things that leaflet is capable of, from customisable icons, shiny integration, raster images, layers etc. There are plenty of resources available online, the http://rstudio.github.io/leaflet/ page is the best to get started and is the basis for much of this introduction!
+
+https://cran.r-project.org/web/packages/leaflet/leaflet.pdf
+
+http://rstudio.github.io/leaflet/
+
+https://data.gov.uk/dataset/daaafdcc-f7c7-41ff-80eb-b0b15efd1414/local-authority-districts-december-2017-generalised-clipped-boundaries-in-united-kingdom-wgs84
+
+https://www.gov.uk/government/publications/covid-19-track-coronavirus-cases

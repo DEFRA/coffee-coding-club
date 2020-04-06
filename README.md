@@ -26,6 +26,8 @@ The aim of the Coffee & Coding meetups is to nurture, enable and encourage a vib
 | Date            | Time  | Room    | Title                                                        | Presenter                                     | Abstract                                                     |
 | :-------------- | :---- | :------ | :----------------------------------------------------------- | :-------------------------------------------- | :----------------------------------------------------------- |
 | Monday 24 Feb 2020 | 12:00 | FH: CRO7, 2MS: SG42 | 'sdcTable' package | Adam Goude  | Demonstrating use of the package "sdcTable", whic he has used to apply first and secondary statistical suppresion on a table. |
+| Monday 6 Apr 2020 | 12:00 | Webex Only | 'leaflet' package | Anthony Walker  | Demonstrating use of the package "leaflet", which is one of the most popular open-source JavaScript libraries for interactive maps. |
+
 
 
 ###### *format forked from www.github.com/departmentfortransport/coffee-and-coding*
