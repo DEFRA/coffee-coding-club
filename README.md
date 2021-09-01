@@ -1,7 +1,7 @@
 <img src="images/c&c_defra_hex_symbol.png" width="200" align="right">
 
 # Coffee & Coding
-### _14/02/2020_
+### _01/09/2021_
 
 A _public_ repository to hold resources and notes from Coffee & Coding sessions.
 
@@ -23,10 +23,9 @@ The aim of the Coffee & Coding meetups is to nurture, enable and encourage a vib
 
 ### Coffee & Coding Schedule
 
-| Date            | Time  | Room    | Title                                                        | Presenter                                     | Abstract                                                     |
-| :-------------- | :---- | :------ | :----------------------------------------------------------- | :-------------------------------------------- | :----------------------------------------------------------- |
-| Monday 24 Feb 2020 | 12:00 | FH: CRO7, 2MS: SG42 | 'sdcTable' package | Adam Goude  | Demonstrating use of the package "sdcTable", whic he has used to apply first and secondary statistical suppresion on a table. |
-| Monday 6 Apr 2020 | 12:00 | Webex Only | 'leaflet' package | Anthony Walker  | Demonstrating use of the package "leaflet", which is one of the most popular open-source JavaScript libraries for interactive maps. |
+| Date  | Time  | Location | Title | Presenter | Abstract |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Wednesday 22nd September 2021 | 11:00 | MS Teams | TBC | TBC  | TBC |
 
 
 
