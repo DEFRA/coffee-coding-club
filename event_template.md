@@ -6,11 +6,11 @@
 
 ## Start time
 
-Please note, the session will start __5 minutes__ later than the scheduled start time, this is to allow time for setting up.
+Please note, the session will start __5 minutes__ later than the scheduled start time, this is to allow time for everyone to make a hot beverage if wanted.
 
-## Webex Meeting
+## MS Teams Meeting
 
-Please join the live Webex Meeting if you can't join us in person. Remember to mute your microphone unless you want to ask a question. You can also ask questions in the Webex chat. The live meeting will be recorded and uploaded to the archive folder after the session. The recording will include audio and the presenter's screen, but no video of the room. 
+Please join us on MS Teams Meeting as for now we will not be meeting in person. Remember to mute your microphone unless you want to ask a question. You can also ask questions in the MS Teams chat. The live meeting will be recorded and uploaded to an internal site after the session. 
 
 __Please note that the recording link must be treated as a government document and should not be shared with unauthorised persons.__ 
 
@@ -20,17 +20,17 @@ The aim of the Coffee & Coding meetups is to nurture, enable and encourage a vib
 
 The format is generally 40 minutes for a presentation and questions to the presenter/s followed by 20 minutes Code Surgery. The presentations usually take the form of a demonstration of a tool or technique and/or a show and tell of work done within the department using these methods. From time to time we will invite external speakers. The Code Surgery provides the opportunity for people to pose any coding related queries/ruminations/ideas to the gathered coding community.
 
-See <https://github.com/DEFRA/coffee-coding-club> for past talks and code!
+See <https://github.com/Defra-Data-Science-Centre-of-Excellence/coffee-coding-club> for past talks and code!
 
 ## How do I get on the mailing list?
-Employees of DEFRA should contact Martin.Duggan@defra.gov.uk
+Employees of DEFRA should contact Ellen.Kendrick@defra.gov.uk
 
 ## How do I stop receiving invites?
-Contact Martin.Duggan@defra.gov.uk
+Contact Ellen.Kendrick@defra.gov.uk
 
 ## Presenters
 
-If you'd like to present get in touch at: Martin.Duggan@defra.gov.uk
+If you'd like to present get in touch at: Ellen.Kendrick@defra.gov.uk
 
 Happy coding!
 
