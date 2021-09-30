@@ -1,5 +1,9 @@
 # 2021-09-30
-**This club is no longer active, please visit https://github.com/Defra-Data-Science-Centre-of-Excellence/coffee-coding-club instead. **
+**This club is no longer active, please visit** https://github.com/Defra-Data-Science-Centre-of-Excellence/coffee-coding-club **instead. **
+
+
+
+
 
 
 
