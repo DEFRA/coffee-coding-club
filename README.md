@@ -1,3 +1,8 @@
+# 2021-09-30
+**This club is no longer active, please visit https://github.com/Defra-Data-Science-Centre-of-Excellence/coffee-coding-club instead. **
+
+
+
 <img src="images/c&c_defra_hex_symbol.png" width="200" align="right">
 
 # Coffee & Coding
